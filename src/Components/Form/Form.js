@@ -24,13 +24,13 @@ class Form extends Component {
         const {title, img, content} = this.state
         axios
           .post(`/api/post`, {title, img, content})
-          .then((res) => this.props.history.push('/dashboard'))
+          .then(() => this.props.history.push('/dashboard'))
           .catch(error => console.log(error));
     }
 
     render() {
     const {title, img, content} = this.state
-    console.log(this.state)
+
       return (
         <div className='form-component'>
             <h1 className='form-new-post'>New Post</h1>

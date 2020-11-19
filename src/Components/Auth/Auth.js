@@ -29,7 +29,8 @@ class Auth extends Component {
         e.preventDefault();
         const {username, password} = this.state
         try {
-            const user = await  axios.post('/api/auth/register', {username, password})
+            const user = await axios.post('/api/auth/register', {username, password})
+            console.log(user)
             this.props.loginUser(user.data);
             this.props.history.push('/dashboard');
           }
@@ -81,8 +82,6 @@ class Auth extends Component {
             <button className='login-button' onClick={this.login}>Login</button>
             <button className='register-button' onClick={this.register}>Register</button>
         </div>
-        
-
     </div>
     )
  }

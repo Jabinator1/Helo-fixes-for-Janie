@@ -7,12 +7,16 @@ module.exports = {
         if(foundUser) {
             return res.status(400).send("Username already exists")
         }
+        const profilePic = `https://robohash.org/${username}`
+
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(password, salt);
-        const [newUser] = await db.register_user([username, hash])
+        const [newUser] = await db.register_user([username, hash, profilePic])
+
         req.session.user = {
             userId: newUser.user_id,
-            username: newUser.username,   
+            username: newUser.username, 
+            profilePic: newUser.profile_pic  
         }
         res.status(200).send(req.session.user)
     },
@@ -30,9 +34,9 @@ module.exports = {
             req.session.user = {
                 userId: foundUser.user_id,
                 username: foundUser.username,
+                profilePic: foundUser.profile_pic  
             }
             res.status(200).send(req.session.user)
-            console.log(req.session.user)
         }else{
             res.status(401).send("Incorrect login information")
         }
@@ -45,35 +49,40 @@ module.exports = {
 
     getUserPosts: (req, res) => {
         const db = req.app.get('db');
-        console.log(req.session.user)
-        db.get_user_posts(req.session.user.userId)
+        const {myPosts, search} = req.query
+
+        db.get_user_posts([myPosts, req.session.user.userId, search])
         .then(posts => res.status(200).send(posts))
         .catch(error => res.status(500).send(error))
         //req.query search and userposts:true
     },
 
-    getOnePost: (req, res) => {
-        const db = req.app.get('db');
-        const {title, img, content, author, authorPicture} = req.params
-        db.get_one_post(title, img, content, author, authorPicture)
-        .then(post => res.status(200).send(post))
-        .catch(error => res.status(500).send(error))
+    getOnePost: async (req, res) => {
+        const db = req.app.get('db')
+        const {id} = req.params
+
+        const [post] = await db.get_one_post(id)
+        res.status(200).send(post)
     },
 
-    addPost: (req, res) => {
-        const db = req.app.get('db');
+    addPost: async (req, res) => {
+        const db = req.app.get('db')
+        const {title, img, content} = req.body
 
-        const {userId, title, img, content} = req.body
-        db.add_post(userId, title, img, content)
-        .then(post => res.status(200).send(post))
-        .catch(error => res.status(500).send(error))
+        await db.add_post([req.session.user.userId, title, img, content])
+        res.sendStatus(200)
     },
 
-    getMe: (req, res) => {
-        if(req.session.user.userId){
-            res.status(200).send(req.session.user.userId)
-        }else{
-            res.status(404).send("NOT WORKING")
+    getMe: async (req, res) => {
+        const db = req.app.get('db')
+        const {userId} = req.session.user
+        
+        const [currentUser] = await db.get_me(userId)
+
+        if (currentUser) {
+            return res.status(200).send(req.session.user)
+        } else {
+            res.status(404).send("Login again pls")
         }
-    }
+    },
 }

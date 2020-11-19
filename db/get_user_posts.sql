@@ -1,5 +1,4 @@
-SELECT p.title, u.username, u.profile_pic
-FROM posts p
-JOIN users u 
-ON p.author_id = u.user_id
-WHERE u.user_id = $1;
+SELECT p.*, u.username, u.profile_pic FROM posts p
+JOIN users u ON u.user_id = p.author_id
+WHERE CASE WHEN $1 = false THEN u.user_id != $2 ELSE true END 
+AND LOWER(p.title) LIKE LOWER('%' || $3 || '%');

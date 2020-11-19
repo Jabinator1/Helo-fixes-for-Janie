@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import {connect} from 'react-redux';
-import {getMe} from '../../ducks/reducer'
 import axios from 'axios';
 
 
@@ -19,35 +18,33 @@ class Dashboard extends Component {
     //   const {data} = await axios.get('/api/post)
     //   this.setState({posts: data})
     // }
-    componentDidMount(){
-      this.props.getMe();
-    }
+    // componentDidMount(){
+    //   this.props.getMe();
+    // }
 
-    getUserPosts = () => {
-      axios
-        .get(`/api/posts`)
+    componentDidMount = () => {
+      const {myPosts, search} = this.state
+      axios.get(`/api/posts?myPosts=${myPosts}&search=${search}`)
         .then(res => this.setState({posts: res.data}))
         .catch(error => console.log(error))
     }
 
     reset = () => {
-      axios
-        .get(`/api/posts`)
+      axios.get(`/api/posts`)
         .then(res => this.setState({posts: res.data, search: ''}))
         .catch(error => console.log(error));
     }
 
     render() {
-      
       const mappedPosts = this.state.posts.map((post) => {
         return <Link to={`/post/${post.post_id}`} 
                 key={post.post_id}>
                 <h1>{post.title}</h1>
-                <p>by {post.author_id}</p>
+                <p>by {post.username}</p>
                 <img src={post.profile_pic} alt='profile'/>
                 </Link>
       })
-      console.log(mappedPosts)
+
         return (
           <div className='dashboard-component'>
             <div className='dashboard-header'>
@@ -84,6 +81,6 @@ class Dashboard extends Component {
 //   }
 // }
 const mapStateToProps = state => state
-export default connect(mapStateToProps, {getMe})(Dashboard);
+export default connect(mapStateToProps)(Dashboard);
 
 // export default Dashboard
